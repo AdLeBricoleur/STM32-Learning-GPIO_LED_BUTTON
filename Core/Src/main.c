@@ -96,6 +96,13 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  /* My code begin */
+	  // Toggle the output PA5 which is connected to LD2
+	  // Write with explicit macro
+	  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+	  // Write with standard macro
+	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+	  /* My code end */
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
