@@ -98,10 +98,10 @@ int main(void)
   {
 	  /* My code begin */
 	  // Toggle the output PA5 which is connected to LD2
-	  // Write with explicit macro
-	  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-	  // Write with standard macro
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+	  // Set high, Write with explicit macro
+	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+	  // Set down, Write with standard macro
+	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
 	  /* My code end */
     /* USER CODE END WHILE */
 
