@@ -96,13 +96,20 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  /* My code begin */
-	  // Toggle the output PA5 which is connected to LD2
-	  // Write with explicit macro
-	  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-	  // Wait 100ms
-	  HAL_Delay(100);
-	  /* My code end */
+	/* My code begin */
+	// Press the button to turn on the LED
+	// Read button input on PC13
+	if (HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == 0)
+	{
+		// Set on the output PA5
+		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+	}
+	else
+	{
+		// Set off the output PA5
+		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+	}
+	/* My code end */
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
