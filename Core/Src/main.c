@@ -66,8 +66,9 @@ static void MX_USART2_UART_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	int etat =0;
-	uint32_t delay_ms = 1000;
+  int etat =0;
+  uint32_t delay_ms_toggle = 100;
+  uint32_t delay_ms_button = 250;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -98,37 +99,37 @@ int main(void)
   while (1)
   {
 	/* My code begin */
+	// If the button is pressed
+	if ( HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) != 1 )
+	{
+		// The state is incremented
+		etat++;
+		// If greater than 2 return to 0
+		if(etat>2)
+		{
+			etat = 0;
+		}
+		// Wait a second to avoid multiple presses
+		HAL_Delay(delay_ms_button);
+	}
+
 	switch (etat)
 	{
 	case 0:
 		// Set off the PA5 output
 		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
-		// Wait according to "delay_ms"
-		HAL_Delay(delay_ms);
-		// Go to state 1
-		etat = 1;
 		// Get out of the switch
 		break;
 	case 1:
 		// Set on the PA5 output
 		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-		// Wait according to "delay_ms"
-		HAL_Delay(delay_ms);
-		// Go to state 1
-		etat = 2;
 		// Get out of the switch
 		break;
 	case 2:
-		// initialize a loop that toggles the PA5 output 10 times
-		for(int i=0;i<10;i++)
-		{
-			// Set toggle the PA5 output
-			HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-			// Wait according to "delay_ms"
-			HAL_Delay(delay_ms/10);
-		}
-		// Go to state 0
-		etat = 0;
+		// Set toggle the PA5 output
+		HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+		// Wait according to "delay_ms"
+		HAL_Delay(delay_ms_toggle);
 		// Get out of the switch
 		break;
 	default:
