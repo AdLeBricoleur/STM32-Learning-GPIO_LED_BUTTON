@@ -40,16 +40,20 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+TIM_HandleTypeDef htim16;
+
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+int etat = 0;
+int toggle_flag = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_TIM16_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -66,9 +70,7 @@ static void MX_USART2_UART_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  int etat =0;
-  uint32_t delay_ms_toggle = 100;
-  uint32_t delay_ms_button = 250;
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -90,8 +92,10 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
+  MX_TIM16_Init();
   /* USER CODE BEGIN 2 */
-
+  // Start timer with interrupt
+  HAL_TIM_Base_Start_IT(&htim16);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -99,21 +103,7 @@ int main(void)
   while (1)
   {
 	/* My code begin */
-	// If the button is pressed
-	if ( HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) != 1 )
-	{
-		// The state is incremented
-		etat++;
-		// If greater than 2 return to 0
-		if(etat>2)
-		{
-			etat = 0;
-		}
-		// Wait a second to avoid multiple presses
-		HAL_Delay(delay_ms_button);
-	}
-
-	switch (etat)
+	switch(etat)
 	{
 	case 0:
 		// Set off the PA5 output
@@ -126,15 +116,20 @@ int main(void)
 		// Get out of the switch
 		break;
 	case 2:
-		// Set toggle the PA5 output
-		HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-		// Wait according to "delay_ms"
-		HAL_Delay(delay_ms_toggle);
+		if(toggle_flag == 1)
+		{
+			// Set toggle the PA5 output
+			HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+			// Reset the toggle_flag
+			toggle_flag = 0;
+		}
 		// Get out of the switch
 		break;
 	default:
 		// Go to state 0
 		etat = 0;
+		// Reset toggle_flag
+		toggle_flag = 0;
 		// Get out of the switch
 		break;
 	}
@@ -193,6 +188,38 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief TIM16 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM16_Init(void)
+{
+
+  /* USER CODE BEGIN TIM16_Init 0 */
+
+  /* USER CODE END TIM16_Init 0 */
+
+  /* USER CODE BEGIN TIM16_Init 1 */
+
+  /* USER CODE END TIM16_Init 1 */
+  htim16.Instance = TIM16;
+  htim16.Init.Prescaler = 8000;
+  htim16.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim16.Init.Period = 1000;
+  htim16.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim16.Init.RepetitionCounter = 0;
+  htim16.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim16) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM16_Init 2 */
+
+  /* USER CODE END TIM16_Init 2 */
+
 }
 
 /**
@@ -263,12 +290,42 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
 
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
+// Callback: timer has rolled over
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  // Check which version of the timer triggered this callback
+  if (htim == &htim16)
+  {
+	  // Set the toggle_flag
+	  toggle_flag = 1;
+  }
+}
 
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if(GPIO_Pin == B1_Pin)
+	{
+		// The state is incremented
+		etat++;
+		// If greater than 2 return to 0
+		if(etat>2)
+		{
+			etat = 0;
+		}
+		// Reset Timer 16 Counter
+		__HAL_TIM_SET_COUNTER(&htim16,0);
+		//htim16->Instance->CNT=0;
+	}
+}
 /* USER CODE END 4 */
 
 /**
