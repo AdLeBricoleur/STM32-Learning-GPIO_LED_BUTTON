@@ -66,7 +66,8 @@ static void MX_USART2_UART_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+	int etat =0;
+	uint32_t delay_ms = 1000;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -97,17 +98,44 @@ int main(void)
   while (1)
   {
 	/* My code begin */
-	// Press the button to turn on the LED
-	// Read button input on PC13
-	if (HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == 0)
+	switch (etat)
 	{
-		// Set on the output PA5
-		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-	}
-	else
-	{
-		// Set off the output PA5
+	case 0:
+		// Set off the PA5 output
 		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+		// Wait according to "delay_ms"
+		HAL_Delay(delay_ms);
+		// Go to state 1
+		etat = 1;
+		// Get out of the switch
+		break;
+	case 1:
+		// Set on the PA5 output
+		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+		// Wait according to "delay_ms"
+		HAL_Delay(delay_ms);
+		// Go to state 1
+		etat = 2;
+		// Get out of the switch
+		break;
+	case 2:
+		// initialize a loop that toggles the PA5 output 10 times
+		for(int i=0;i<10;i++)
+		{
+			// Set toggle the PA5 output
+			HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+			// Wait according to "delay_ms"
+			HAL_Delay(delay_ms/10);
+		}
+		// Go to state 0
+		etat = 0;
+		// Get out of the switch
+		break;
+	default:
+		// Go to state 0
+		etat = 0;
+		// Get out of the switch
+		break;
 	}
 	/* My code end */
     /* USER CODE END WHILE */
